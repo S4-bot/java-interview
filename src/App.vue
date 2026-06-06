@@ -2,7 +2,7 @@
 import { reactive, ref } from 'vue'
 
 const form = reactive({
-  account: '',
+  qq: '',
   password: '',
   remember: false,
 })
@@ -10,12 +10,17 @@ const form = reactive({
 const message = ref('')
 
 function handleLogin() {
-  if (!form.account || !form.password) {
-    message.value = '请填写账号和密码。'
+  if (!form.qq || !form.password) {
+    message.value = '请填写QQ号和密码。'
     return
   }
 
-  message.value = `欢迎回来，${form.account}`
+  if (!/^[1-9]\d{4,11}$/.test(form.qq)) {
+    message.value = '请输入正确的QQ号。'
+    return
+  }
+
+  message.value = `欢迎回来，QQ ${form.qq}`
 }
 </script>
 
@@ -35,19 +40,20 @@ function handleLogin() {
     <section class="login-side">
       <div class="login-box">
         <p class="eyebrow">RESTAURANT PORTAL</p>
-        <h2>餐馆账号登录</h2>
-        <p class="subtext">请输入手机号或邮箱，继续管理门店营业信息。</p>
+        <h2>QQ账号登录</h2>
+        <p class="subtext">请输入QQ号和密码，继续管理门店营业信息。</p>
 
         <form @submit.prevent="handleLogin">
-          <label for="account">
-            手机号或邮箱
+          <label for="qq">
+            QQ号
             <input
-              id="account"
-              v-model.trim="form.account"
-              name="account"
+              id="qq"
+              v-model.trim="form.qq"
+              name="qq"
               type="text"
+              inputmode="numeric"
               autocomplete="username"
-              placeholder="例如 13800000000"
+              placeholder="例如 123456789"
             >
           </label>
 
@@ -66,7 +72,7 @@ function handleLogin() {
           <div class="row">
             <label class="remember" for="remember">
               <input id="remember" v-model="form.remember" name="remember" type="checkbox">
-              记住本机登录状态
+              记住本机QQ登录状态
             </label>
             <a href="#" @click.prevent>忘记密码？</a>
           </div>
@@ -77,11 +83,11 @@ function handleLogin() {
 
         <div class="divider">或</div>
 
-        <p class="register">还没有门店账号？ <a href="#" @click.prevent>申请入驻</a></p>
+        <p class="register">还没有绑定QQ？ <a href="#" @click.prevent>申请绑定</a></p>
 
         <div class="notice">
           <div class="notice-icon" aria-hidden="true">桌</div>
-          <div>营业高峰期建议使用门店管理员账号登录，以便同步桌台与订单权限。</div>
+          <div>营业高峰期建议使用已授权的管理员QQ登录，以便同步桌台与订单权限。</div>
         </div>
       </div>
     </section>
