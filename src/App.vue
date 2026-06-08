@@ -57,18 +57,25 @@ const state = reactive({
   question: samples[0],
   transcript: '',
   answer: '',
-  mode: 'standard',
+  mode: 'quick',
   status: '待生成',
   error: '',
+  generating: false,
+  elapsedMs: 0,
+  firstTokenMs: null,
+  totalMs: null,
 })
 
 const listening = ref(false)
 const recognitionSupported = ref(Boolean(window.SpeechRecognition || window.webkitSpeechRecognition))
 let recognition
+let answerTimer
 
 const isDesktop = computed(() => Boolean(window.assistantAPI?.isDesktop))
 const profile = computed(() => findProfile(state.question))
 const followUps = computed(() => profile.value.follow)
+const elapsedText = computed(() => formatDuration(state.generating ? state.elapsedMs : state.totalMs))
+const firstTokenText = computed(() => formatDuration(state.firstTokenMs))
 
 function findProfile(question) {
   const text = question.toLowerCase()
@@ -142,22 +149,58 @@ function extractQuestion(text) {
 
 async function generateAnswer() {
   state.error = ''
-  state.status = '正在生成标准答案'
+  state.answer = ''
+  state.generating = true
+  state.elapsedMs = 0
+  state.firstTokenMs = null
+  state.totalMs = null
+  state.status = '正在生成答案'
+  const startedAt = performance.now()
+  answerTimer = window.setInterval(() => {
+    state.elapsedMs = performance.now() - startedAt
+  }, 80)
 
   const desktopApi = window.assistantAPI
-  if (desktopApi?.generateAnswer) {
-    const result = await desktopApi.generateAnswer({ question: state.question, mode: state.mode })
-    if (result.ok) {
-      state.answer = result.answer
-      state.status = 'AI 答案已生成'
-      return
+  try {
+    if (desktopApi?.generateAnswerStream) {
+      const result = await desktopApi.generateAnswerStream({ question: state.question, mode: state.mode }, (event) => {
+        if (event.type === 'delta') {
+          state.answer += event.delta
+          state.elapsedMs = event.elapsedMs
+          state.firstTokenMs = event.firstTokenMs
+          state.status = 'AI 正在输出'
+        }
+      })
+
+      if (result.ok) {
+        state.answer = state.answer || result.answer
+        state.totalMs = result.elapsedMs ?? performance.now() - startedAt
+        state.firstTokenMs = result.firstTokenMs ?? state.firstTokenMs
+        state.status = result.budgetExceeded ? '已按时间预算停止' : 'AI 答案已生成'
+        return
+      }
+
+      state.error = result.error
+    } else if (desktopApi?.generateAnswer) {
+      const result = await desktopApi.generateAnswer({ question: state.question, mode: state.mode })
+      if (result.ok) {
+        state.answer = result.answer
+        state.totalMs = result.elapsedMs ?? performance.now() - startedAt
+        state.status = 'AI 答案已生成'
+        return
+      }
+
+      state.error = result.error
     }
 
-    state.error = result.error
+    state.answer = buildLocalAnswer(state.question, profile.value, state.mode)
+    state.status = '本地兜底答案已生成'
+    state.totalMs = performance.now() - startedAt
+  } finally {
+    state.generating = false
+    window.clearInterval(answerTimer)
+    state.elapsedMs = state.totalMs ?? performance.now() - startedAt
   }
-
-  state.answer = buildLocalAnswer(state.question, profile.value, state.mode)
-  state.status = '本地兜底答案已生成'
 }
 
 function buildLocalAnswer(question, item, mode) {
@@ -189,8 +232,15 @@ function useSample(sample) {
   state.error = ''
 }
 
+function formatDuration(value) {
+  if (value === null || value === undefined) return '--'
+  if (value < 1000) return `${Math.max(0, Math.round(value))}ms`
+  return `${(value / 1000).toFixed(1)}s`
+}
+
 onBeforeUnmount(() => {
   recognition?.stop()
+  window.clearInterval(answerTimer)
 })
 </script>
 
@@ -256,7 +306,15 @@ onBeforeUnmount(() => {
             <p>右侧弹窗</p>
             <h2>标准答案生成</h2>
           </div>
-          <button class="generate" type="button" @click="generateAnswer">生成答案</button>
+          <div class="answer-actions">
+            <button class="generate" type="button" :disabled="state.generating" @click="generateAnswer">
+              {{ state.generating ? '生成中' : '生成答案' }}
+            </button>
+            <div class="latency" :class="{ active: state.generating }" aria-live="polite">
+              <span>耗时 {{ elapsedText }}</span>
+              <small>首字 {{ firstTokenText }}</small>
+            </div>
+          </div>
         </div>
 
         <div v-if="state.error" class="error">{{ state.error }}</div>
@@ -442,6 +500,47 @@ h2 {
   background: var(--green);
 }
 
+button:disabled {
+  cursor: wait;
+  opacity: 0.72;
+}
+
+.answer-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+.latency {
+  display: grid;
+  min-width: 98px;
+  min-height: 42px;
+  border: 2px solid var(--ink);
+  border-radius: 8px;
+  padding: 5px 9px;
+  place-content: center;
+  background: #fff;
+  box-shadow: 2px 2px 0 rgba(24, 27, 31, 0.45);
+  line-height: 1.1;
+}
+
+.latency.active {
+  background: #d9e8f7;
+}
+
+.latency span {
+  font-size: 13px;
+  font-weight: 900;
+}
+
+.latency small {
+  margin-top: 4px;
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 800;
+}
+
 button:hover {
   transform: translateY(-1px);
   box-shadow: 3px 3px 0 var(--ink);
@@ -577,6 +676,11 @@ ol {
 
   .pane {
     min-height: auto;
+  }
+
+  .answer-actions {
+    align-items: flex-end;
+    flex-direction: column;
   }
 }
 </style>
