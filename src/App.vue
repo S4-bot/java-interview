@@ -248,8 +248,8 @@ onBeforeUnmount(() => {
   <main class="shell">
     <header class="titlebar">
       <div>
-        <p>Practice Popup</p>
-        <h1>Java 后端面试训练弹窗</h1>
+        <p>Interview Studio</p>
+        <h1>Java 后端面试训练台</h1>
       </div>
       <div class="badges">
         <span>{{ isDesktop ? '桌面模式' : '浏览器预览' }}</span>
@@ -258,11 +258,11 @@ onBeforeUnmount(() => {
       </div>
     </header>
 
-    <section class="popup">
+    <section class="workspace">
       <aside class="pane question-pane">
         <div class="pane-head">
           <div>
-            <p>左侧弹窗</p>
+            <p>Question Capture</p>
             <h2>问题识别</h2>
           </div>
           <button class="record" :class="{ active: listening }" type="button" @click="listening ? stopListening() : startListening()">
@@ -303,7 +303,7 @@ onBeforeUnmount(() => {
       <section class="pane answer-pane">
         <div class="pane-head">
           <div>
-            <p>右侧弹窗</p>
+            <p>Answer Draft</p>
             <h2>标准答案生成</h2>
           </div>
           <div class="answer-actions">
@@ -320,7 +320,7 @@ onBeforeUnmount(() => {
         <div v-if="state.error" class="error">{{ state.error }}</div>
 
         <article class="answer">
-          <pre>{{ state.answer || '点击“生成答案”，会根据左侧问题生成可口述的标准答案。配置 OPENAI_API_KEY 后会使用 AI 生成；未配置时使用本地 Java 后端知识库兜底。' }}</pre>
+          <pre>{{ state.answer || '点击“生成答案”，会根据当前问题生成可口述的标准答案。配置 OPENAI_API_KEY 后会使用 AI 生成；未配置时使用本地 Java 后端知识库兜底。' }}</pre>
         </article>
 
         <footer class="followups">
@@ -339,15 +339,18 @@ onBeforeUnmount(() => {
 
 <style>
 :root {
-  --bg: #f3efe4;
-  --ink: #181b1f;
-  --muted: #68706c;
-  --line: #d3c8b6;
-  --panel: #fffdf7;
-  --green: #176b55;
-  --red: #bb3f34;
-  --blue: #275c94;
-  --yellow: #f2c84b;
+  --bg: #f6f3ec;
+  --ink: #17201c;
+  --muted: #6f7772;
+  --line: #ddd7ca;
+  --panel: rgba(255, 254, 249, 0.9);
+  --panel-strong: #fffefa;
+  --green: #14735d;
+  --red: #b84b3d;
+  --blue: #245d83;
+  --yellow: #e9bb45;
+  --sage: #dfe8d3;
+  --shadow: 0 24px 70px rgba(55, 48, 35, 0.14);
 }
 
 * {
@@ -359,7 +362,7 @@ body {
   min-height: 100vh;
   color: var(--ink);
   background: var(--bg);
-  font-family: "Segoe UI", "Microsoft YaHei", sans-serif;
+  font-family: "Aptos", "Microsoft YaHei", "Segoe UI", sans-serif;
 }
 
 button,
@@ -373,12 +376,12 @@ button {
 
 .shell {
   min-height: 100vh;
-  padding: 22px;
+  padding: 24px;
   background:
-    linear-gradient(90deg, rgba(24, 27, 31, 0.05) 1px, transparent 1px),
-    linear-gradient(rgba(24, 27, 31, 0.045) 1px, transparent 1px),
+    radial-gradient(circle at 12% 10%, rgba(20, 115, 93, 0.16), transparent 29%),
+    radial-gradient(circle at 86% 18%, rgba(233, 187, 69, 0.22), transparent 24%),
+    linear-gradient(135deg, rgba(36, 93, 131, 0.08), transparent 34%),
     var(--bg);
-  background-size: 26px 26px;
 }
 
 .titlebar {
@@ -386,17 +389,17 @@ button {
   align-items: flex-end;
   justify-content: space-between;
   gap: 18px;
-  margin: 0 auto 16px;
+  margin: 0 auto 18px;
   max-width: 1320px;
 }
 
 .titlebar p,
 .pane-head p {
   margin: 0 0 7px;
-  color: var(--red);
+  color: var(--green);
   font-size: 12px;
-  font-weight: 900;
-  letter-spacing: 0.08em;
+  font-weight: 800;
+  letter-spacing: 0.12em;
   text-transform: uppercase;
 }
 
@@ -407,13 +410,14 @@ h2 {
 }
 
 h1 {
-  font-family: Georgia, "Microsoft YaHei", serif;
-  font-size: clamp(30px, 4vw, 52px);
-  line-height: 1;
+  font-family: "Cambria", "Microsoft YaHei", serif;
+  font-size: clamp(32px, 4vw, 54px);
+  line-height: 0.98;
 }
 
 h2 {
-  font-size: 22px;
+  font-size: 21px;
+  font-weight: 800;
 }
 
 .badges {
@@ -424,38 +428,50 @@ h2 {
 }
 
 .badges span {
-  border: 1px solid var(--ink);
+  border: 1px solid rgba(23, 32, 28, 0.12);
   border-radius: 999px;
-  padding: 7px 11px;
-  background: var(--yellow);
+  padding: 8px 12px;
+  background: rgba(255, 254, 249, 0.78);
   font-size: 13px;
-  font-weight: 900;
-  box-shadow: 3px 3px 0 var(--ink);
+  font-weight: 800;
+  box-shadow: 0 10px 28px rgba(55, 48, 35, 0.1);
+  backdrop-filter: blur(14px);
 }
 
 .badges span:nth-child(2) {
-  background: #dce9c2;
+  background: rgba(223, 232, 211, 0.86);
 }
 
 .badges span:nth-child(3) {
-  background: #d9e8f7;
+  background: rgba(219, 234, 242, 0.86);
 }
 
-.popup {
+.workspace {
   display: grid;
   grid-template-columns: minmax(340px, 0.9fr) minmax(440px, 1.1fr);
-  gap: 16px;
+  gap: 18px;
   max-width: 1320px;
   margin: 0 auto;
 }
 
 .pane {
   min-height: calc(100vh - 132px);
-  border: 2px solid var(--ink);
+  border: 1px solid rgba(23, 32, 28, 0.12);
   border-radius: 8px;
-  padding: 18px;
-  background: rgba(255, 253, 247, 0.96);
-  box-shadow: 7px 7px 0 var(--ink), 0 20px 64px rgba(28, 26, 20, 0.13);
+  padding: 20px;
+  background: var(--panel);
+  box-shadow: var(--shadow);
+  backdrop-filter: blur(18px);
+}
+
+.question-pane {
+  background:
+    linear-gradient(180deg, rgba(255, 254, 249, 0.96), rgba(246, 249, 240, 0.9));
+}
+
+.answer-pane {
+  background:
+    linear-gradient(180deg, rgba(255, 254, 249, 0.96), rgba(241, 247, 246, 0.91));
 }
 
 .answer-pane {
@@ -475,19 +491,20 @@ h2 {
 .generate,
 .controls button,
 .samples button {
-  border: 2px solid var(--ink);
+  border: 1px solid rgba(23, 32, 28, 0.14);
   border-radius: 8px;
   color: var(--ink);
-  background: #fff;
-  font-weight: 900;
-  transition: transform 130ms ease, box-shadow 130ms ease, background 130ms ease;
+  background: var(--panel-strong);
+  font-weight: 800;
+  transition: transform 140ms ease, box-shadow 140ms ease, background 140ms ease, border-color 140ms ease;
 }
 
 .record,
 .generate {
   min-width: 92px;
   min-height: 42px;
-  background: var(--yellow);
+  background: #f3ce6d;
+  box-shadow: 0 10px 20px rgba(120, 86, 18, 0.16);
 }
 
 .record.active {
@@ -498,6 +515,7 @@ h2 {
 .generate {
   color: #fff;
   background: var(--green);
+  box-shadow: 0 12px 24px rgba(20, 115, 93, 0.24);
 }
 
 button:disabled {
@@ -516,12 +534,11 @@ button:disabled {
   display: grid;
   min-width: 98px;
   min-height: 42px;
-  border: 2px solid var(--ink);
+  border: 1px solid rgba(23, 32, 28, 0.12);
   border-radius: 8px;
   padding: 5px 9px;
   place-content: center;
-  background: #fff;
-  box-shadow: 2px 2px 0 rgba(24, 27, 31, 0.45);
+  background: rgba(255, 254, 249, 0.76);
   line-height: 1.1;
 }
 
@@ -543,7 +560,8 @@ button:disabled {
 
 button:hover {
   transform: translateY(-1px);
-  box-shadow: 3px 3px 0 var(--ink);
+  border-color: rgba(23, 32, 28, 0.28);
+  box-shadow: 0 12px 26px rgba(55, 48, 35, 0.14);
 }
 
 textarea {
@@ -551,13 +569,14 @@ textarea {
   min-height: 210px;
   margin-top: 16px;
   resize: vertical;
-  border: 2px solid var(--ink);
+  border: 1px solid rgba(23, 32, 28, 0.14);
   border-radius: 8px;
-  padding: 15px;
+  padding: 16px;
   color: var(--ink);
-  background: #fff;
+  background: var(--panel-strong);
   outline: none;
   line-height: 1.7;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.8);
 }
 
 textarea:focus {
@@ -579,6 +598,7 @@ textarea:focus {
 .controls .selected {
   color: #fff;
   background: var(--blue);
+  border-color: transparent;
 }
 
 .transcript,
@@ -586,8 +606,8 @@ textarea:focus {
 .error {
   border: 1px solid var(--line);
   border-radius: 8px;
-  padding: 13px;
-  background: #fff8e8;
+  padding: 14px;
+  background: rgba(255, 249, 232, 0.76);
 }
 
 .transcript strong,
@@ -611,8 +631,9 @@ textarea:focus {
 
 .samples button {
   min-height: 42px;
-  padding: 9px 11px;
+  padding: 10px 12px;
   text-align: left;
+  line-height: 1.45;
 }
 
 .error {
@@ -624,11 +645,43 @@ textarea:focus {
 
 .answer {
   overflow: auto;
-  border: 2px solid var(--ink);
+  scrollbar-width: thin;
+  scrollbar-color: transparent transparent;
+  border: 1px solid rgba(23, 32, 28, 0.14);
   border-radius: 8px;
   background:
-    linear-gradient(90deg, rgba(23, 107, 85, 0.08), transparent 38%),
-    #fff;
+    linear-gradient(135deg, rgba(20, 115, 93, 0.09), transparent 42%),
+    var(--panel-strong);
+  transition: scrollbar-color 160ms ease, border-color 160ms ease, box-shadow 160ms ease;
+}
+
+.answer:hover,
+.answer:focus-within {
+  scrollbar-color: rgba(23, 32, 28, 0.34) transparent;
+  border-color: rgba(20, 115, 93, 0.28);
+  box-shadow: inset 0 0 0 1px rgba(20, 115, 93, 0.06);
+}
+
+.answer::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+.answer::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.answer::-webkit-scrollbar-thumb {
+  border: 3px solid transparent;
+  border-radius: 999px;
+  background: transparent;
+  background-clip: padding-box;
+}
+
+.answer:hover::-webkit-scrollbar-thumb,
+.answer:focus-within::-webkit-scrollbar-thumb {
+  background: rgba(23, 32, 28, 0.34);
+  background-clip: padding-box;
 }
 
 pre {
@@ -670,7 +723,7 @@ ol {
     justify-content: flex-start;
   }
 
-  .popup {
+  .workspace {
     grid-template-columns: 1fr;
   }
 
